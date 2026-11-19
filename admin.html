@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quản trị Chào mừng 40 Phòng</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+    body { margin: 0; background: #0f172a; color: #f8fafc; padding: 16px; }
+    .container { max-width: 520px; margin: 0 auto; }
+    h1 { font-size: 20px; color: #fbbf24; margin-bottom: 14px; }
+    .card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 14px;
+      border: 1px solid #334155;
+    }
+    label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; margin-top: 10px; }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: #fff;
+      font-size: 16px;
+    }
+    textarea { min-height: 84px; resize: vertical; }
+    .row { display: flex; gap: 10px; align-items: center; }
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 12px;
+    }
+    .btn-primary { background: #fbbf24; color: #0f172a; }
+    .btn-secondary { background: #334155; color: #f8fafc; }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .status {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      background: #0f172a;
+      color: #38bdf8;
+      display: none;
+    }
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+    .toggle-wrap input { width: 22px; height: 22px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Quản trị Lời chào Khách sạn (40 Phòng)</h1>
+
+    <!-- CẤU HÌNH GITHUB (NHẬP 1 LẦN TRÊN ĐIỆN THOẠI) -->
+    <div class="card">
+      <div style="font-weight:600; color:#fbbf24;">1. Kết nối GitHub (lưu tự động trên máy)</div>
+      <label>Tên tài khoản GitHub (Username)</label>
+      <input id="ghUser" placeholder="ví dụ: nguyenvana" />
+      <label>Tên Repository</label>
+      <input id="ghRepo" value="hotel-tv-welcome" />
+      <label>Personal Access Token (ghp_...)</label>
+      <input id="ghToken" type="password" placeholder="Dán token quyền repo vào đây" />
+      <button class="btn-secondary" onclick="saveSettingsAndLoad()">Kết nối & Tải danh sách phòng</button>
+    </div>
+
+    <!-- CẬP NHẬT TÊN KHÁCH THEO PHÒNG -->
+    <div class="card">
+      <div style="font-weight:600; color:#fbbf24;">2. Cập nhật khách check-in theo phòng</div>
+      <label>Chọn số phòng</label>
+      <select id="roomSelect" onchange="renderSelectedRoom()"></select>
+
+      <div class="toggle-wrap">
+        <input type="checkbox" id="roomActive" />
+        <label for="roomActive" style="margin:0; color:#fff; font-size:15px;">Bật lời chào riêng cho phòng này</label>
+      </div>
+
+      <label>Tên khách hàng (mỗi người 1 dòng hoặc cách nhau dấu phẩy)</label>
+      <textarea id="guestNames" placeholder="Ví dụ:&#10;Nguyễn Văn A&#10;Trần Thị B"></textarea>
+
+      <label>Lời chúc hiển thị bên dưới</label>
+      <input id="greetingText" value="Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!" />
+
+      <label>Link video MP4 quảng bá chung của khách sạn (tùy chọn)</label>
+      <input id="promoVideoUrl" placeholder="https://.../hotel-promo.mp4 (để trống nếu dùng slide chữ)" />
+
+      <button class="btn-primary" onclick="pushToGitHub()">LƯU & CẬP NHẬT LÊN TV PHÒNG</button>
+      <button class="btn-danger" onclick="clearRoom()">Khách trả phòng (Tắt lời chào phòng này)</button>
+      <div id="statusBox" class="status"></div>
+    </div>
+  </div>
+
+  <script>
+    // Tạo danh sách 40 phòng: 101-110, 201-210, 301-310, 401-410
+    const defaultRooms = [];
+    for (let f = 1; f <= 4; f++) {
+      for (let r = 1; r <= 10; r++) {
+        defaultRooms.push(`${f}${r < 10 ? '0' + r : r}`);
+      }
+    }
+
+    const roomSelect = document.getElementById('roomSelect');
+    defaultRooms.forEach(num => {
+      const opt = document.createElement('option');
+      opt.value = num;
+      opt.textContent = 'Phòng ' + num;
+      roomSelect.appendChild(opt);
+    });
+    roomSelect.value = '201';
+
+    let currentData = null;
+    let currentSha = '';
+
+    function showStatus(msg, isErr = false) {
+      const box = document.getElementById('statusBox');
+      box.style.display = 'block';
+      box.style.color = isErr ? '#f87171' : '#34d399';
+      box.textContent = msg;
+    }
+
+    function loadSavedCredentials() {
+      document.getElementById('ghUser').value = localStorage.getItem('ghUser') || '';
+      document.getElementById('ghRepo').value = localStorage.getItem('ghRepo') || 'hotel-tv-welcome';
+      document.getElementById('ghToken').value = localStorage.getItem('ghToken') || '';
+    }
+
+    async function saveSettingsAndLoad() {
+      const user = document.getElementById('ghUser').value.trim();
+      const repo = document.getElementById('ghRepo').value.trim();
+      const token = document.getElementById('ghToken').value.trim();
+      if (!user || !repo || !token) {
+        showStatus('Vui lòng nhập đủ Username, Repo và Token.', true);
+        return;
+      }
+      localStorage.setItem('ghUser', user);
+      localStorage.setItem('ghRepo', repo);
+      localStorage.setItem('ghToken', token);
+      await fetchGitHubFile();
+    }
+
+    async function fetchGitHubFile() {
+      const user = localStorage.getItem('ghUser');
+      const repo = localStorage.getItem('ghRepo');
+      const token = localStorage.getItem('ghToken');
+      if (!user || !repo || !token) return;
+
+      showStatus('Đang tải dữ liệu từ GitHub...');
+      try {
+        const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/rooms.json?t=${Date.now()}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Không đọc được rooms.json. Kiểm tra lại tên repo hoặc token.');
+        const fileObj = await res.json();
+        currentSha = fileObj.sha;
+        const decoded = decodeURIComponent(escape(atob(fileObj.content.replace(/\n/g, ''))));
+        currentData = JSON.parse(decoded);
+        document.getElementById('promoVideoUrl').value = currentData.promoVideoUrl || '';
+        renderSelectedRoom();
+        showStatus('Đã kết nối! Chọn phòng để sửa tên khách.');
+      } catch (e) {
+        showStatus(e.message, true);
+      }
+    }
+
+    function renderSelectedRoom() {
+      if (!currentData) return;
+      const room = roomSelect.value;
+      const info = currentData.rooms?.[room] || { active: false, guests: [], greeting: 'Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!' };
+      document.getElementById('roomActive').checked = !!info.active;
+      document.getElementById('guestNames').value = (info.guests || []).join('\n');
+      document.getElementById('greetingText').value = info.greeting || 'Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!';
+    }
+
+    function clearRoom() {
+      document.getElementById('roomActive').checked = false;
+      document.getElementById('guestNames').value = '';
+      pushToGitHub();
+    }
+
+    async function pushToGitHub() {
+      const user = localStorage.getItem('ghUser');
+      const repo = localStorage.getItem('ghRepo');
+      const token = localStorage.getItem('ghToken');
+      if (!user || !repo || !token) {
+        showStatus('Chưa cấu hình GitHub ở mục 1.', true);
+        return;
+      }
+      if (!currentData) await fetchGitHubFile();
+      if (!currentData) return;
+
+      const room = roomSelect.value;
+      const rawNames = document.getElementById('guestNames').value;
+      const guests = rawNames.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+      const active = document.getElementById('roomActive').checked && guests.length > 0;
+      const greeting = document.getElementById('greetingText').value.trim();
+
+      if (!currentData.rooms) currentData.rooms = {};
+      currentData.rooms[room] = { active, guests, greeting };
+      currentData.promoVideoUrl = document.getElementById('promoVideoUrl').value.trim();
+
+      const jsonStr = JSON.stringify(currentData, null, 2);
+      const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
+
+      showStatus('Đang lưu lên GitHub...');
+      try {
+        const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/rooms.json`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `Cập nhật khách phòng ${room}`,
+            content: base64Content,
+            sha: currentSha
+          })
+        });
+        if (!res.ok) throw new Error('Lỗi khi lưu. Bấm "Kết nối & Tải danh sách phòng" rồi thử lại.');
+        const updated = await res.json();
+        currentSha = updated.content.sha;
+        showStatus(`Đã lưu Phòng ${room}! Box TV sẽ tự cập nhật sau vài giây.`);
+      } catch (e) {
+        showStatus(e.message, true);
+      }
+    }
+
+    loadSavedCredentials();
+    fetchGitHubFile();
+  </script>
+</body>
+</html>
