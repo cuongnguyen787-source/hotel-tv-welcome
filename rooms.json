@@ -33,6 +33,11 @@
       "guests": [],
       "greeting": ""
     },
+    "303": {
+      "active": false,
+      "guests": [],
+      "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
+    },
     "309": {
       "active": true,
       "guests": [
