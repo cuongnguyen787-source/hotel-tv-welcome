@@ -32,6 +32,14 @@
       "active": false,
       "guests": [],
       "greeting": ""
+    },
+    "309": {
+      "active": false,
+      "guests": [
+        "1. Kimjung Un",
+        "2. Le Park"
+      ],
+      "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
     }
   }
 }
