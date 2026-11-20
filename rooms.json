@@ -34,8 +34,12 @@
       "greeting": ""
     },
     "303": {
-      "active": false,
-      "guests": [],
+      "active": true,
+      "guests": [
+        "1. Hải Phòng",
+        "2. Cát Bà",
+        "3. Đồ sơn"
+      ],
       "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
     },
     "309": {
