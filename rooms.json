@@ -1,6 +1,7 @@
 {
-  "hotelName": "GM hotel",
-  "promoVideoUrl": "https://pub-56a5933ad4f348359d6e7b9b86f96055.r2.dev/Uberzen%20Residence%20Complex_1080p.mp4",
+  "hotelName": "KHÁCH SẠN CỦA BẠN",
+  "welcomeBgUrl": "https://cuongnguyen787-source.github.io/hotel-tv-welcome/hotel-bg.jpg",
+  "promoVideoUrl": "",
   "promoSlides": [
     {
       "title": "NHÀ HÀNG & BUFFET SÁNG",
@@ -21,33 +22,13 @@
   "rooms": {
     "201": {
       "active": true,
-      "guests": [
-        "1. Lê Thị Ngọc",
-        "2. Tôm tôm"
-      ],
+      "guests": ["Nguyễn Văn A", "Trần Thị B"],
       "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
     },
     "202": {
       "active": false,
       "guests": [],
       "greeting": ""
-    },
-    "303": {
-      "active": true,
-      "guests": [
-        "1. Hải Phòng",
-        "2. Cát Bà",
-        "3. Đồ sơn"
-      ],
-      "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
-    },
-    "309": {
-      "active": true,
-      "guests": [
-        "1. Kimjung Un",
-        "2. Le Park"
-      ],
-      "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
     }
   }
 }
