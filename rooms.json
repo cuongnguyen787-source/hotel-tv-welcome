@@ -22,7 +22,10 @@
   "rooms": {
     "201": {
       "active": true,
-      "guests": ["Nguyễn Văn A", "Trần Thị B"],
+      "guests": [
+        "Nguyễn Văn A",
+        "Trần Thị B"
+      ],
       "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
     },
     "202": {
