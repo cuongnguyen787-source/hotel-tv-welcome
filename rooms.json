@@ -39,8 +39,10 @@
       "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
     },
     "309": {
-      "active": false,
-      "guests": [],
+      "active": true,
+      "guests": [
+        "Ô cụ hút thuốc"
+      ],
       "greeting": "Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!"
     }
   }
