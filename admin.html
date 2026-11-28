@@ -1,250 +1,180 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quản trị Chào mừng 40 Phòng</title>
+  <meta charset="UTF-8">
+  <title>Quản Trị Hotel TV Launcher (100 Boxes)</title>
   <style>
-    * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
-    body { margin: 0; background: #0f172a; color: #f8fafc; padding: 16px; }
-    .container { max-width: 520px; margin: 0 auto; }
-    h1 { font-size: 20px; color: #fbbf24; margin-bottom: 14px; }
-    .card {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 14px;
-      border: 1px solid #334155;
-    }
-    label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; margin-top: 10px; }
-    input, textarea, select {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #475569;
-      background: #0f172a;
-      color: #fff;
-      font-size: 16px;
-    }
-    textarea { min-height: 84px; resize: vertical; }
-    button {
-      width: 100%;
-      padding: 14px;
-      border: none;
-      border-radius: 10px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-top: 12px;
-    }
-    .btn-primary { background: #fbbf24; color: #0f172a; }
-    .btn-secondary { background: #334155; color: #f8fafc; }
-    .btn-danger { background: #dc2626; color: #fff; }
-    .status {
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 14px;
-      background: #0f172a;
-      color: #38bdf8;
-      display: none;
-    }
-    .toggle-wrap { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
-    .toggle-wrap input { width: 22px; height: 22px; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    .container { max-width: 900px; margin: auto; background: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h2 { border-bottom: 2px solid #007bff; padding-bottom: 8px; color: #333; margin-top: 25px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 5px; }
+    input[type="text"], input[type="number"], textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    button { background: #007bff; color: #fff; border: none; padding: 12px 20px; font-size: 16px; border-radius: 4px; cursor: pointer; margin-top: 15px; }
+    button:hover { background: #0056b3; }
+    .btn-add { background: #28a745; padding: 6px 12px; font-size: 14px; }
+    .playlist-item { display: flex; gap: 10px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Quản trị Lời chào Khách sạn (40 Phòng)</h1>
+<div class="container">
+  <h1>🏨 Hệ Thống Quản Lý TV Khách Sạn</h1>
 
-    <!-- CẤU HÌNH GITHUB -->
-    <div class="card">
-      <div style="font-weight:600; color:#fbbf24;">1. Kết nối GitHub (lưu tự động trên máy)</div>
-      <label>Tên tài khoản GitHub (Username)</label>
-      <input id="ghUser" placeholder="ví dụ: cuongnguyen787-source" />
-      <label>Tên Repository</label>
-      <input id="ghRepo" value="hotel-tv-welcome" />
-      <label>Personal Access Token (ghp_...)</label>
-      <input id="ghToken" type="password" placeholder="Dán token quyền repo vào đây" />
-      <button class="btn-secondary" onclick="saveSettingsAndLoad()">Kết nối & Tải danh sách phòng</button>
+  <h2>1. Hình Nền & Ngôn Ngữ Lời Chào</h2>
+  <div class="form-group">
+    <label>Link Ảnh Nền Chính (Wallpaper URL):</label>
+    <input type="text" id="wallpaper_url" placeholder="https://.../wallpaper.jpg">
+  </div>
+  <div class="form-group">
+    <label>Ngôn ngữ mặc định hiển thị:</label>
+    <select id="default_lang">
+      <option value="en">English</option>
+      <option value="ko">Korea (한국어)</option>
+      <option value="ja">Japan (日本語)</option>
+      <option value="zh">China (中文)</option>
+    </select>
+  </div>
+  <div class="grid-2">
+    <div class="form-group">
+      <label>Lời chào - English:</label>
+      <textarea id="msg_en" rows="2">Welcome to our Hotel!</textarea>
     </div>
-
-    <!-- CẬP NHẬT TÊN KHÁCH & GIAO DIỆN CHUNG -->
-    <div class="card">
-      <div style="font-weight:600; color:#fbbf24;">2. Cập nhật khách check-in theo phòng</div>
-      <label>Chọn số phòng</label>
-      <select id="roomSelect" onchange="renderSelectedRoom()"></select>
-
-      <div class="toggle-wrap">
-        <input type="checkbox" id="roomActive" />
-        <label for="roomActive" style="margin:0; color:#fff; font-size:15px;">Bật lời chào riêng cho phòng này</label>
-      </div>
-
-      <label>Tên khách hàng (mỗi người 1 dòng hoặc cách nhau dấu phẩy)</label>
-      <textarea id="guestNames" placeholder="Ví dụ:&#10;Nguyễn Văn A&#10;Trần Thị B"></textarea>
-
-      <label>Lời chúc hiển thị bên dưới</label>
-      <input id="greetingText" value="Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!" />
-
-      <hr style="border:0; border-top:1px solid #334155; margin:16px 0;" />
-      <div style="font-weight:600; color:#fbbf24;">3. Cấu hình chung cho cả 40 phòng</div>
-
-      <label>Tên Khách sạn hiển thị trên đầu màn hình</label>
-      <input id="hotelName" placeholder="KHÁCH SẠN CỦA BẠN" />
-
-      <label>Link ảnh nền khách sạn (.jpg / .png)</label>
-      <input id="welcomeBgUrl" placeholder="https://cuongnguyen787-source.github.io/hotel-tv-welcome/hotel-bg.jpeg" />
-
-      <label>Link video MP4 quảng bá chung của khách sạn (tùy chọn)</label>
-      <input id="promoVideoUrl" placeholder="https://.../hotel-promo.mp4 (để trống nếu dùng slide chữ)" />
-
-      <button class="btn-primary" onclick="pushToGitHub()">LƯU & CẬP NHẬT LÊN TV</button>
-      <button class="btn-danger" onclick="clearRoom()">Khách trả phòng (Tắt lời chào phòng này)</button>
-      <div id="statusBox" class="status"></div>
+    <div class="form-group">
+      <label>Lời chào - Korea (한국어):</label>
+      <textarea id="msg_ko" rows="2">호텔에 오신 것을 환영합니다!</textarea>
+    </div>
+    <div class="form-group">
+      <label>Lời chào - Japan (日本語):</label>
+      <textarea id="msg_ja" rows="2">当ホテルへようこそ！</textarea>
+    </div>
+    <div class="form-group">
+      <label>Lời chào - China (中文):</label>
+      <textarea id="msg_zh" rows="2">欢迎光临本酒店！</textarea>
     </div>
   </div>
 
-  <script>
-    const defaultRooms = [];
-    for (let f = 1; f <= 4; f++) {
-      for (let r = 1; r <= 10; r++) {
-        defaultRooms.push(`${f}${r < 10 ? '0' + r : r}`);
-      }
-    }
+  <h2>2. Quảng Cáo Khi Màn Hình Nghỉ (Promotion Slide / Video)</h2>
+  <div class="grid-2">
+    <div class="form-group">
+      <label>Thời gian chờ vào chế độ quảng cáo (giây):</label>
+      <input type="number" id="idle_timeout" value="180">
+    </div>
+    <div class="form-group">
+      <label>Thời gian chuyển mỗi ảnh slide (giây):</label>
+      <input type="number" id="slide_duration" value="10">
+    </div>
+  </div>
+  <label>Danh sách Ảnh / Video quảng cáo:</label>
+  <div id="playlist-container"></div>
+  <button type="button" class="btn-add" onclick="addPlaylistItem()">+ Thêm Ảnh / Video</button>
 
-    const roomSelect = document.getElementById('roomSelect');
-    defaultRooms.forEach(num => {
-      const opt = document.createElement('option');
-      opt.value = num;
-      opt.textContent = 'Phòng ' + num;
-      roomSelect.appendChild(opt);
+  <h2>3. Quản Lý Ứng Dụng Hiển Thị (Thanh Dock dưới cùng)</h2>
+  <div class="form-group">
+    <label>Danh sách Package Name được phép hiển thị (mỗi dòng 1 app, để trống = hiện tất cả):</label>
+    <textarea id="visible_packages" rows="4" placeholder="com.google.android.youtube.tv&#10;com.netflix.ninja"></textarea>
+  </div>
+
+  <h2>4. Cập Nhật App Từ Xa (OTA Update)</h2>
+  <div class="grid-2">
+    <div class="form-group">
+      <label>Version Code mới nhất:</label>
+      <input type="number" id="version_code" value="1">
+    </div>
+    <div class="form-group">
+      <label>Link tải file APK mới:</label>
+      <input type="text" id="apk_url" placeholder="https://.../launcher-v2.apk">
+    </div>
+  </div>
+
+  <button onclick="saveConfig()">💾 LƯU & ĐỒNG BỘ XUỐNG 100 BOX</button>
+  <p id="status" style="color: green; font-weight: bold;"></p>
+</div>
+
+<script>
+  // Thay URL Firebase Realtime Database của bạn vào đây
+  const FIREBASE_DB_URL = "https://YOUR-PROJECT-ID-default-rtdb.firebaseio.com/hotel_config.json";
+
+  function addPlaylistItem(type = 'image', url = '') {
+    const container = document.getElementById('playlist-container');
+    const div = document.createElement('div');
+    div.className = 'playlist-item';
+    div.innerHTML = `
+      <select style="width: 120px;">
+        <option value="image" ${type === 'image' ? 'selected' : ''}>Ảnh (Image)</option>
+        <option value="video" ${type === 'video' ? 'selected' : ''}>Video (MP4)</option>
+      </select>
+      <input type="text" placeholder="Nhập link trực tiếp (URL)..." value="${url}">
+      <button type="button" style="background:#dc3545; margin:0; padding:6px 12px;" onclick="this.parentElement.remove()">Xóa</button>
+    `;
+    container.appendChild(div);
+  }
+
+  async function loadConfig() {
+    try {
+      const res = await fetch(FIREBASE_DB_URL);
+      const data = await res.json();
+      if (!data) return;
+      document.getElementById('wallpaper_url').value = data.launcher?.wallpaper_url || '';
+      document.getElementById('default_lang').value = data.launcher?.default_lang || 'en';
+      document.getElementById('msg_en').value = data.launcher?.welcome_messages?.en || '';
+      document.getElementById('msg_ko').value = data.launcher?.welcome_messages?.ko || '';
+      document.getElementById('msg_ja').value = data.launcher?.welcome_messages?.ja || '';
+      document.getElementById('msg_zh').value = data.launcher?.welcome_messages?.zh || '';
+      document.getElementById('idle_timeout').value = data.promotion?.idle_timeout_seconds || 180;
+      document.getElementById('slide_duration').value = data.promotion?.slide_duration_seconds || 10;
+      document.getElementById('visible_packages').value = (data.launcher?.visible_packages || []).join('\n');
+      document.getElementById('version_code').value = data.app_update?.version_code || 1;
+      document.getElementById('apk_url').value = data.app_update?.apk_url || '';
+      
+      (data.promotion?.playlist || []).forEach(item => addPlaylistItem(item.type, item.url));
+    } catch (e) { console.error(e); }
+  }
+
+  async function saveConfig() {
+    const playlist = [];
+    document.querySelectorAll('.playlist-item').forEach(row => {
+      const type = row.querySelector('select').value;
+      const url = row.querySelector('input').value.trim();
+      if (url) playlist.push({ type, url });
     });
-    roomSelect.value = '201';
 
-    let currentData = null;
-    let currentSha = '';
+    const packages = document.getElementById('visible_packages').value
+      .split('\n').map(s => s.trim()).filter(Boolean);
 
-    function showStatus(msg, isErr = false) {
-      const box = document.getElementById('statusBox');
-      box.style.display = 'block';
-      box.style.color = isErr ? '#f87171' : '#34d399';
-      box.textContent = msg;
-    }
-
-    function loadSavedCredentials() {
-      document.getElementById('ghUser').value = localStorage.getItem('ghUser') || '';
-      document.getElementById('ghRepo').value = localStorage.getItem('ghRepo') || 'hotel-tv-welcome';
-      document.getElementById('ghToken').value = localStorage.getItem('ghToken') || '';
-    }
-
-    async function saveSettingsAndLoad() {
-      const user = document.getElementById('ghUser').value.trim();
-      const repo = document.getElementById('ghRepo').value.trim();
-      const token = document.getElementById('ghToken').value.trim();
-      if (!user || !repo || !token) {
-        showStatus('Vui lòng nhập đủ Username, Repo và Token.', true);
-        return;
+    const payload = {
+      app_update: {
+        version_code: parseInt(document.getElementById('version_code').value),
+        apk_url: document.getElementById('apk_url').value.trim()
+      },
+      launcher: {
+        wallpaper_url: document.getElementById('wallpaper_url').value.trim(),
+        default_lang: document.getElementById('default_lang').value,
+        welcome_messages: {
+          en: document.getElementById('msg_en').value,
+          ko: document.getElementById('msg_ko').value,
+          ja: document.getElementById('msg_ja').value,
+          zh: document.getElementById('msg_zh').value
+        },
+        visible_packages: packages
+      },
+      promotion: {
+        idle_timeout_seconds: parseInt(document.getElementById('idle_timeout').value),
+        slide_duration_seconds: parseInt(document.getElementById('slide_duration').value),
+        playlist: playlist
       }
-      localStorage.setItem('ghUser', user);
-      localStorage.setItem('ghRepo', repo);
-      localStorage.setItem('ghToken', token);
-      await fetchGitHubFile();
-    }
+    };
 
-    async function fetchGitHubFile() {
-      const user = localStorage.getItem('ghUser');
-      const repo = localStorage.getItem('ghRepo');
-      const token = localStorage.getItem('ghToken');
-      if (!user || !repo || !token) return;
+    document.getElementById('status').innerText = "Đang đồng bộ...";
+    await fetch(FIREBASE_DB_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById('status').innerText = "✅ Đã cập nhật thành công cho 100 Box!";
+  }
 
-      showStatus('Đang tải dữ liệu từ GitHub...');
-      try {
-        const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/rooms.json?t=${Date.now()}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Không đọc được rooms.json. Kiểm tra lại tên repo hoặc token.');
-        const fileObj = await res.json();
-        currentSha = fileObj.sha;
-        const decoded = decodeURIComponent(escape(atob(fileObj.content.replace(/\n/g, ''))));
-        currentData = JSON.parse(decoded);
-
-        document.getElementById('hotelName').value = currentData.hotelName || 'KHÁCH SẠN CỦA BẠN';
-        document.getElementById('welcomeBgUrl').value = currentData.welcomeBgUrl || '';
-        document.getElementById('promoVideoUrl').value = currentData.promoVideoUrl || '';
-
-        renderSelectedRoom();
-        showStatus('Đã kết nối! Chọn phòng để sửa tên khách hoặc đổi ảnh nền.');
-      } catch (e) {
-        showStatus(e.message, true);
-      }
-    }
-
-    function renderSelectedRoom() {
-      if (!currentData) return;
-      const room = roomSelect.value;
-      const info = currentData.rooms?.[room] || { active: false, guests: [], greeting: 'Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!' };
-      document.getElementById('roomActive').checked = !!info.active;
-      document.getElementById('guestNames').value = (info.guests || []).join('\n');
-      document.getElementById('greetingText').value = info.greeting || 'Chúc Quý khách có kỳ nghỉ thật trọn vẹn và thoải mái!';
-    }
-
-    function clearRoom() {
-      document.getElementById('roomActive').checked = false;
-      document.getElementById('guestNames').value = '';
-      pushToGitHub();
-    }
-
-    async function pushToGitHub() {
-      const user = localStorage.getItem('ghUser');
-      const repo = localStorage.getItem('ghRepo');
-      const token = localStorage.getItem('ghToken');
-      if (!user || !repo || !token) {
-        showStatus('Chưa cấu hình GitHub ở mục 1.', true);
-        return;
-      }
-      if (!currentData) await fetchGitHubFile();
-      if (!currentData) return;
-
-      const room = roomSelect.value;
-      const rawNames = document.getElementById('guestNames').value;
-      const guests = rawNames.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
-      const active = document.getElementById('roomActive').checked && guests.length > 0;
-      const greeting = document.getElementById('greetingText').value.trim();
-
-      if (!currentData.rooms) currentData.rooms = {};
-      currentData.rooms[room] = { active, guests, greeting };
-      currentData.hotelName = document.getElementById('hotelName').value.trim() || 'KHÁCH SẠN CỦA BẠN';
-      currentData.welcomeBgUrl = document.getElementById('welcomeBgUrl').value.trim();
-      currentData.promoVideoUrl = document.getElementById('promoVideoUrl').value.trim();
-
-      const jsonStr = JSON.stringify(currentData, null, 2);
-      const base64Content = btoa(unescape(encodeURIComponent(jsonStr)));
-
-      showStatus('Đang lưu lên GitHub...');
-      try {
-        const res = await fetch(`https://api.github.com/repos/${user}/${repo}/contents/rooms.json`, {
-          method: 'PUT',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: `Cập nhật phòng ${room} và giao diện`,
-            content: base64Content,
-            sha: currentSha
-          })
-        });
-        if (!res.ok) throw new Error('Lỗi khi lưu. Bấm "Kết nối & Tải danh sách phòng" rồi thử lại.');
-        const updated = await res.json();
-        currentSha = updated.content.sha;
-        showStatus(`Đã lưu Phòng ${room} & ảnh nền! TV sẽ tự cập nhật ở lượt lặp kế tiếp.`);
-      } catch (e) {
-        showStatus(e.message, true);
-      }
-    }
-
-    loadSavedCredentials();
-    fetchGitHubFile();
-  </script>
+  window.onload = loadConfig;
+</script>
 </body>
 </html>
